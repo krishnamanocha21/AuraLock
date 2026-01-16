@@ -1,0 +1,21 @@
+# --- Dependencies (Ignore in all folders) ---
+node_modules/
+*/node_modules/
+
+# --- Environment Variables (Secrets) ---
+.env
+*/.env
+.env.local
+*/.env.local
+
+# --- Build Outputs ---
+dist/
+build/
+*/dist/
+*/build/
+
+# --- System Files ---
+.DS_Store
+
+# text files
+.txt
