@@ -2,7 +2,8 @@ import { Router } from "express";
 import { 
     registerUser, 
     loginUser, 
-    logoutUser 
+    logoutUser, 
+    refreshAccessToken
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -19,7 +20,7 @@ router.route("/login").post(upload.none(),loginUser)
 // Secured Routes (Login required)
 // verifyJWT checks the token first. If valid, it allows logoutUser to run.
 router.route("/logout").post(verifyJWT, logoutUser)
-
+router.route("/refresh-token").post(refreshAccessToken)
 export default router
 
 //why the name is not affecting anything
