@@ -1,150 +1,224 @@
 import React, { useState } from 'react';
-import { LogOut, Search, FileText, Eye, X, Filter, Shield } from 'lucide-react';
 import Layout from '../components/Layout';
+import { 
+  LogOut, 
+  Lock, 
+  Unlock, 
+  FileText, 
+  Download, 
+  Search, 
+  Eye, 
+  AlertCircle,
+  CheckCircle2
+} from 'lucide-react';
+
+// Mock data representing files available to the receiver
+const initialReceivedFiles = [
+  {
+    id: 'file-101',
+    name: 'Q4_Financial_Report_Final.pdf',
+    size: '2.4 MB',
+    date: '2026-01-17, 09:30 AM',
+    sender: 'john.doe@auralock.com',
+    isLocked: true,
+    // In a real app, password validation happens on the backend. 
+    // This is just for mockup simulation.
+    correctPassword: 'password123' 
+  },
+  {
+    id: 'file-102',
+    name: 'Project_Alpha_Blueprints.zip',
+    size: '156 MB',
+    date: '2026-01-16, 04:15 PM',
+    sender: 'sarah.smith@design.com',
+    isLocked: true,
+    correctPassword: 'securepass'
+  },
+  {
+    id: 'file-103',
+    name: 'Meeting_Notes_Jan15.docx',
+    size: '45 KB',
+    date: '2026-01-15, 11:00 AM',
+    sender: 'john.doe@auralock.com',
+    isLocked: true,
+    correctPassword: 'notes'
+  }
+];
+
 const ReceiverDashboard = () => {
-  // Mock Data: Represents "All records created by any Sender"
-  const allRecords = [
-    { id: 1, fileName: 'Q4_Financials.pdf', description: 'Q4 revenue reports and audit logs.', category: 'Finance', sender: 'john.doe@example.com', date: '2026-01-14' },
-    { id: 2, fileName: 'Project_Alpha_Specs.docx', description: 'Technical specifications for the new module.', category: 'Engineering', sender: 'sarah.smith@example.com', date: '2026-01-13' },
-    { id: 3, fileName: 'Employee_Handbook_v2.pdf', description: 'Updated HR policies for 2026.', category: 'HR', sender: 'hr.manager@example.com', date: '2026-01-12' },
-  ];
+  // State to manage the list of files and their locked status
+  const [files, setFiles] = useState(initialReceivedFiles);
+  
+  // State to manage password inputs for each file independently
+  // Object shape: { 'file-101': 'userTypedPassword', 'file-102': '' }
+  const [passwordInputs, setPasswordInputs] = useState({});
 
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  // State to manage error messages for specific files
+  // Object shape: { 'file-101': 'Incorrect password' }
+  const [errors, setErrors] = useState({});
 
-  // Filter logic for search
-  const filteredRecords = allRecords.filter(record => 
-    record.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    record.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Handle typing in a password field for a specific file
+  const handlePasswordChange = (fileId, value) => {
+    setPasswordInputs(prev => ({ ...prev, [fileId]: value }));
+    // Clear error when user starts typing again
+    if (errors[fileId]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fileId];
+        return newErrors;
+      });
+    }
+  };
+
+  // Handle the unlock attempt
+  const handleUnlock = (fileId) => {
+    const inputPassword = passwordInputs[fileId];
+    const fileToUnlock = files.find(f => f.id === fileId);
+
+    if (!inputPassword) {
+      setErrors(prev => ({ ...prev, [fileId]: "Please enter a password." }));
+      return;
+    }
+
+    // Simulate backend validation check
+    if (inputPassword === fileToUnlock.correctPassword) {
+      // Success: Update file state to unlocked
+      setFiles(prevFiles => 
+        prevFiles.map(file => 
+          file.id === fileId ? { ...file, isLocked: false } : file
+        )
+      );
+      // Clear input and errors
+      setPasswordInputs(prev => ({ ...prev, [fileId]: '' }));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fileId];
+        return newErrors;
+      });
+    } else {
+      // Failure: Set error message
+      setErrors(prev => ({ ...prev, [fileId]: "Incorrect decryption password." }));
+    }
+  };
 
   return (
-    <Layout>  
+    <Layout>
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-blue-500 selection:text-white">
-      
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      {/* --- Main Content --- */}
+      <main className="max-w-5xl mx-auto px-6 py-10">
         
-        {/* Header & Search */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 animate-in fade-in slide-in-from-bottom-3 duration-500">
           <div>
-            <h1 className="text-2xl font-bold text-white">Global File Registry</h1>
-            <p className="text-slate-400 text-sm mt-1">Read-only view of all metadata records.</p>
+            <h1 className="text-2xl font-bold text-white">Received Files</h1>
+            <p className="text-slate-400 mt-1">Access files secured and shared with you.</p>
           </div>
-          
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
-            </div>
+
+          {/* Search Bar */}
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input 
               type="text" 
-              placeholder="Search files or tags..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 w-full sm:w-64 transition-all outline-none"
+              placeholder="Search files..." 
+              className="block w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
             />
           </div>
         </div>
 
-        {/* --- Global Table View --- */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-400">
-              <thead className="bg-slate-950/50 text-xs uppercase font-semibold text-slate-300">
-                <tr>
-                  <th className="px-6 py-4">File Name</th>
-                  <th className="px-6 py-4">Category</th>
-                  <th className="px-6 py-4">Sender</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {filteredRecords.map((record) => (
-                  <tr key={record.id} className="hover:bg-slate-800/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-200 flex items-center gap-3">
-                      <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
-                        <FileText className="w-4 h-4" />
-                      </div>
-                      {record.fileName}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300">
-                        {record.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">{record.sender}</td>
-                    <td className="px-6 py-4">{record.date}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => setSelectedRecord(record)}
-                        className="text-blue-400 hover:text-blue-300 font-medium text-xs flex items-center gap-1 ml-auto"
-                      >
-                        <Eye className="w-3.5 h-3.5" /> View Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {filteredRecords.length === 0 && (
-            <div className="p-12 text-center text-slate-500">
-              No records found matching your search.
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* --- Detail Modal --- */}
-      {selectedRecord && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-white">Record Details</h3>
-              <button onClick={() => setSelectedRecord(null)} className="text-slate-400 hover:text-white transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">File Name</label>
-                <div className="text-slate-200 mt-1 font-medium text-lg">{selectedRecord.fileName}</div>
-              </div>
+        {/* Files List */}
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+          {files.map((file) => (
+            <div key={file.id} className={`group bg-slate-900 border ${file.isLocked ? 'border-slate-800' : 'border-emerald-900/50 bg-emerald-950/10'} rounded-2xl p-5 sm:p-6 shadow-xl shadow-black/20 transition-all`}>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Category</label>
-                   <div className="text-slate-200 mt-1 bg-slate-800 px-3 py-1.5 rounded-lg inline-block text-sm border border-slate-700">{selectedRecord.category}</div>
+              <div className="flex flex-col lg:flex-row gap-6">
+                {/* File Info Section */}
+                <div className="flex-1 flex items-start gap-4">
+                  <div className={`p-4 rounded-xl ${file.isLocked ? 'bg-slate-800 text-slate-400' : 'bg-emerald-500/20 text-emerald-400'} transition-colors`}>
+                    <FileText className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-lg font-semibold text-slate-100 truncate">{file.name}</h3>
+                        {file.isLocked ? (
+                            <span className="flex items-center gap-1 text-xs font-medium bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700">
+                                <Lock className="w-3 h-3" /> Locked
+                            </span>
+                        ) : (
+                            <span className="flex items-center gap-1 text-xs font-medium bg-emerald-900/30 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-900/50">
+                                <CheckCircle2 className="w-3 h-3" /> Unlocked
+                            </span>
+                        )}
+                    </div>
+                    
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
+                      <span>{file.size}</span>
+                      <span className="text-slate-700">•</span>
+                      <span>{file.date}</span>
+                    </div>
+                    <p className="text-sm text-slate-400 mt-2">
+                      Sent by: <span className="text-slate-300 font-medium">{file.sender}</span>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Uploaded By</label>
-                   <div className="text-slate-200 mt-1 text-sm">{selectedRecord.sender}</div>
+
+                {/* Action Section (Unlock/Download) */}
+                <div className="lg:w-72 flex flex-col justify-center shrink-0 border-t lg:border-t-0 lg:border-l border-slate-800 lg:pl-6 pt-4 lg:pt-0">
+                  {file.isLocked ? (
+                    // Locked State: Password Input
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">
+                          Decryption Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="password"
+                            placeholder="••••••••"
+                            value={passwordInputs[file.id] || ''}
+                            onChange={(e) => handlePasswordChange(file.id, e.target.value)}
+                            className={`block w-full pl-4 pr-10 py-2.5 bg-slate-950 border rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-2 transition-all ${errors[file.id] ? 'border-red-500/50 focus:ring-red-500/50' : 'border-slate-800 focus:ring-emerald-500/50 focus:border-emerald-500'}`}
+                            onKeyDown={(e) => { if(e.key === 'Enter') handleUnlock(file.id) }}
+                          />
+                           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <Lock className="h-4 w-4 text-slate-500" />
+                          </div>
+                        </div>
+                        {errors[file.id] && (
+                          <p className="flex items-center gap-1 text-xs text-red-400 mt-2 animate-in fade-in slide-in-from-top-1">
+                            <AlertCircle className="w-3 h-3" /> {errors[file.id]}
+                          </p>
+                        )}
+                      </div>
+                      <button 
+                        onClick={() => handleUnlock(file.id)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-xl transition-colors border border-slate-700 hover:border-slate-600 focus:ring-2 focus:ring-slate-700"
+                      >
+                        <Unlock className="w-4 h-4" />
+                        Unlock File
+                      </button>
+                    </div>
+                  ) : (
+                    // Unlocked State: Download Actions
+                    <div className="flex flex-col gap-3 h-full justify-center animate-in zoom-in-95 duration-300">
+                      <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-900/20">
+                        <Download className="w-5 h-5" />
+                        Download File
+                      </button>
+                      <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-950 hover:bg-slate-900 text-emerald-400 hover:text-emerald-300 text-sm font-medium rounded-xl transition-colors border border-slate-800 hover:border-emerald-900/50">
+                        <Eye className="w-4 h-4" />
+                        Quick View
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Description</label>
-                <div className="mt-2 p-4 bg-slate-950 rounded-xl border border-slate-800 text-slate-300 text-sm leading-relaxed">
-                  {selectedRecord.description}
-                </div>
-              </div>
             </div>
-
-            <div className="p-4 bg-slate-950/50 border-t border-slate-800 flex justify-end">
-              <button 
-                onClick={() => setSelectedRecord(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
-      )}
-      
+
+      </main>
     </div>
     </Layout>
   );
