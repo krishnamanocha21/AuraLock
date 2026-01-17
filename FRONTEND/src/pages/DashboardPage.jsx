@@ -1,12 +1,19 @@
 import React from 'react';
-import { LogOut, Send, Download, Shield, Lock } from 'lucide-react';
+import { LogOut, Send, Download, Shield, } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { TbLock } from "react-icons/tb";
 import Layout from '../components/Layout';
-
+import { useNavigate } from 'react-router-dom';
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
+  const handleSenderClick = () => {
+    navigate('/senderDashboard');
+  };
+  const handleReceiverClick = () => {
+    navigate('/receiverDashboard');
+  };
   return (
     <Layout>
     <div className="min-h-screen bg-[#070b16] text-slate-200 font-sans flex flex-col">
@@ -20,7 +27,9 @@ export default function Dashboard() {
         </div>
 
         <div className="flex flex-col md:flex-row gap-6 w-full max-w-4xl justify-center">
-          <button className="group relative flex-1 h-64 bg-[#0f172a] border border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center gap-8 transition-all duration-300 hover:border-blue-600 hover:bg-[#080c16]">
+          <button
+            onClick={handleSenderClick}
+            className="group relative flex-1 h-64 bg-[#0f172a] border border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center gap-8 transition-all duration-300 hover:border-blue-600 hover:bg-[#080c16]">
             <div className="relative flex items-center justify-center">
               <Shield className="w-14 h-14 text-white group-hover:text-blue-600 transition-colors duration-300 stroke-[1.5]" />
               <Send className="w-8 h-8 text-white group-hover:text-blue-400 absolute -right-6 -bottom-2 transition-colors duration-300 stroke-[1.5]" />
@@ -30,7 +39,9 @@ export default function Dashboard() {
             </span>
           </button>
 
-          <button className="group relative flex-1 h-64 bg-[#0f172a] border border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center gap-8 transition-all duration-300 hover:border-blue-600 hover:bg-[#080c16]">
+          <button 
+          onClick={handleReceiverClick}
+          className="group relative flex-1 h-64 bg-[#0f172a] border border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center gap-8 transition-all duration-300 hover:border-blue-600 hover:bg-[#080c16]">
             <div className="relative flex items-center justify-center">
               <Download className="w-8 h-8 text-white group-hover:text-blue-400 absolute -left-6 -bottom-2 transition-colors duration-300 stroke-[1.5]" />
               <Shield className="w-14 h-14 text-white group-hover:text-blue-600 transition-colors duration-300 stroke-[1.5]" />

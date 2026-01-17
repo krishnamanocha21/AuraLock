@@ -1,10 +1,12 @@
+//remember the arrangement of parameters matters
+
 class ApiResponse {
-  constructor( statusCode, message="success", data = null) {
-    this.success = statusCode < 400;
-    this.statusCode = statusCode;
-    this.message = message;
-    this.data = data;
-  }
+    constructor(statusCode, data, message = "Success"){
+        this.statusCode = statusCode
+        this.data = data       
+        this.message = message 
+        this.success = statusCode < 400
+    }
 }
 
 export {ApiResponse}

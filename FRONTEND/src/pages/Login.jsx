@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { Lock, Mail, User } from 'lucide-react';
 import { TbLock } from "react-icons/tb";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-import api from '../api/axios';
 export default function LoginPage() {
 
  //frontend part
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate(); 
 
-
+  const { login, register } = useAuth();
   /*backend part*/
   const [formData, setFormData] = useState({
     fullName: "",
@@ -19,34 +19,38 @@ export default function LoginPage() {
   });
 
   // 2. Handle typing in inputs
+  //...formData (The Spread Operator): This is crucial. It means: "Copy everything currently inside formData."
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 3. Handle Form Submit (Login or Register)
+  // 3. Updated Submit Logic (Cleaner & simpler)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (isLogin) {
-        // --- LOGIN LOGIC ---
-        // We only send email and password for login
-        const response = await api.post("/users/login", {
-          email: formData.email,
-          password: formData.password
-        });
-        alert("Login Successful!");
+
+    if (isLogin) {
+      // --- LOGIN LOGIC ---
+      // We call the context function. It handles the API and State internally.
+      const result = await login(formData.email, formData.password);
+
+      if (result.success) {
+        // If successful, just navigate. The Context already saved the user data.
         navigate("/dashboard");
       } else {
-        // --- REGISTER LOGIC ---
-        // We send all fields for register
-        await api.post("/users/register", formData);
+        // If failed, show the error message returned by the context
+        alert(result.message);
+      }
+
+    } else {
+      // --- REGISTER LOGIC ---
+      const result = await register(formData);
+
+      if (result.success) {
         alert("Registration Successful! Please Login.");
         setIsLogin(true); // Switch to login tab
+      } else {
+        alert(result.message);
       }
-    } catch (error) {
-      console.error("Auth Error:", error);
-      // Show the exact error message from backend
-      alert(error.response?.data?.message || "Something went wrong");
     }
   };
  /*-------------------------- */

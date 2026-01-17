@@ -3,7 +3,8 @@ import {
     registerUser, 
     loginUser, 
     logoutUser, 
-    refreshAccessToken
+    refreshAccessToken,
+    getCurrentUser
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -21,6 +22,7 @@ router.route("/login").post(upload.none(),loginUser)
 // verifyJWT checks the token first. If valid, it allows logoutUser to run.
 router.route("/logout").post(verifyJWT, logoutUser)
 router.route("/refresh-token").post(refreshAccessToken)
+router.route("/current-user").get(verifyJWT, getCurrentUser)
 export default router
 
 //why the name is not affecting anything

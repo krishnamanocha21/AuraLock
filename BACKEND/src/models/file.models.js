@@ -25,7 +25,7 @@ const fileSchema = new Schema(
         category: {
             type: String,
             required: true,
-            enum: ["Document", "Image", "Video", "Audio", "Other"], 
+            enum: ["Finance", "Engineering", "HR", "Legal", "Marketing", "General"], 
             // Restrict to specific types
             default: "Other"
         },

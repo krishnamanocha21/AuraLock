@@ -1,7 +1,18 @@
 import React from 'react';
 import { TbLock } from 'react-icons/tb';
 import { LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
 const Layout = ({ children }) => {
+  const {user, logOut } = useAuth();
+  const navigate  =useNavigate();
+
+  const handleLogout =async ()=> {
+    await logOut();
+    navigate("/");
+  }
+
   return (
     <div className="max-h-screen  flex flex-col bg-[#070b16] font-sans text-gray-200">
       
@@ -15,11 +26,13 @@ const Layout = ({ children }) => {
               <div className="flex flex-col">
               <span className="text-2xl font-bold tracking-tight text-white">AuraLock</span>
             
-            <span className="text-xs text-slate-500 mt-0.5 "> Portal • john.doe@auralock.com</span>
+            <span className="text-xs text-slate-500 mt-0.5 "> Portal • {user?.email }</span>
             </div>
           </div>
 
-          <button className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-slate-400 hover:text-white transition-colors border border-slate-800 hover:border-slate-600 rounded-lg ">
+          <button 
+          className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-slate-400 hover:text-white transition-colors border border-slate-800 hover:border-slate-600 rounded-lg "
+          onClick={handleLogout}  >
             <LogOut className="w-4 h-4" />
             Logout
           </button>

@@ -1,74 +1,105 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+
+import api from '../api/axios';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState({
-    username: "DemoUser",
-    fullName: "John Doe",
-    role: "guest"
-  });
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // 1. Check if user is logged in when app loads
   useEffect(() => {
-    try {
-      const savedToken = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
+    //The server does not remember you. The server is "stateless." It only knows you are logged in because your browser re-sends the proof (the token) immediately upon refresh,because of the useEffect hook
+    const checkUserLoggedIn = async () => {
+      try {
+        const response = await api.get('/users/current-user', {
+          // This is the "shipping label" we just discussed.
+          //Without this header, your backend (specifically the verifyJWT middleware) would see the request as "anonymous" and reject it with a 401 Unauthorized error.
+          //Since GET requests don't have a "body" (you aren't sending a file or a form), the headers are the only place to carry the security token
+          headers: {
+            //When this code runs, it creates a string that looks like this
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        });
 
-      if (savedToken && savedUser) {
-        setUser(JSON.parse(savedUser));
+        
+
+        // it check weather response.data.data is there or not if yes save that data to the User
+        if (response.data && response.data.data) {
+          setUser(response.data.data);
+        } else {
+          
+          setUser(response.data); // Try setting it directly
+        }
+      } catch (error) {
+        console.error('Session check failed', error);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error restoring session from LocalStorage:", error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    checkUserLoggedIn();
   }, []);
 
-  const login = async (username, password) => {
+  // 2. Login Function
+  const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        //it is necessary to set the content-type header to application/json otherwise the server will do not parse the body as json
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+      const response = await api.post('/users/login', {
+        email,
+        password,
       });
 
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error(`Server sent non-JSON response. `);
+      const data = response.data;
+
+      if (data.data?.accessToken) {
+        localStorage.setItem('accessToken', data.data.accessToken);
       }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify({ username: data.username, role: data.role }));
-      setUser({ username: data.username, role: data.role });
-      
+      setUser(data.data.user);
       return { success: true };
-
     } catch (error) {
-      if (error.message === 'Failed to fetch') {
-        return { success: false, message: "Server is offline or unreachable." };
-      }
-      return { success: false, message: error.message };
+      const message = error.response?.data?.message || 'Login failed';
+      return { success: false, message };
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+  // 3. Register Function
+  const register = async (userData) => {
+    try {
+      await api.post('/users/register', userData);
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Registration failed';
+      return { success: false, message };
+    }
+  };
+
+  // 4. Logout Function
+  const logOut = async () => {
+    try {
+      await api.post(
+        '/users/logout',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        },
+      );
+
+      localStorage.removeItem('accessToken');
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed', error);
+      localStorage.removeItem('accessToken');
+      setUser(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logOut, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

@@ -7,6 +7,7 @@ node_modules/
 */.env
 .env.local
 */.env.local
+#for ignoring any .env file in that folder or subfolder we use the wildcard *
 
 # --- Build Outputs ---
 dist/
@@ -19,3 +20,4 @@ build/
 
 # text files
 .txt
+frontend/src/context/.txt

@@ -6,7 +6,8 @@ const app=express();
 
 //app.use() is used for middleware in express.js and configures it
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    //origin: process.env.CORS_ORIGIN,
+    origin: [ "http://localhost:5174"],
     credentials: true,
     
 }
