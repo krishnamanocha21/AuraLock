@@ -223,37 +223,13 @@ const getCurrentUser = asyncHandler(async(req, res) => {
     ))
 });
 
-const updateUserRole = asyncHandler(async (req, res) => {
-    // 1. Get the role from req.body
-    const { role } = req.body;
 
-    // 2. Update user role in the database
-    const updatedUser = await User.findByIdAndUpdate(
-        req.user._id,
-        {
-            $set: { role: role }
-        },
-        {
-            new: true, // Return the updated document
-            runValidators: true // Ensure the role matches the Schema enum
-        }
-    ).select("-password -refreshToken");
-
-    if (!updatedUser) {
-        throw new ApiError(404, "User not found");
-    }
-
-    // 3. Send Response
-    return res
-        .status(200)
-        .json(new ApiResponse(200, updatedUser, "Role updated successfully"));
-});
 export { 
     registerUser, 
     loginUser, 
     logoutUser,
     refreshAccessToken,
     getCurrentUser,
-    updateUserRole
+    
 
 }

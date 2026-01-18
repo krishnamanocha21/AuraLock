@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
+import listEndpoints from 'express-list-endpoints';
 const app=express();
 
 //app.use() is used for middleware in express.js and configures it
@@ -29,7 +29,8 @@ app.use("/api/v1/users", userRouter)
 app.use("/api/v1/files", fileRouter)
 
 
-
+console.log("Registered Routes:");
+console.table(listEndpoints(app));
 
 export default app;
 

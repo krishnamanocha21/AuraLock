@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
     //The server does not remember you. The server is "stateless." It only knows you are logged in because your browser re-sends the proof (the token) immediately upon refresh,because of the useEffect hook
     const checkUserLoggedIn = async () => {
       try {
+
         const response = await api.get('/users/current-user', {
           // This is the "shipping label" we just discussed.
           //Without this header, your backend (specifically the verifyJWT middleware) would see the request as "anonymous" and reject it with a 401 Unauthorized error.
@@ -99,35 +100,9 @@ export const AuthProvider = ({ children }) => {
   };
 
 
-  // 5. Update User Role Function
-  const updateUserRole = async (newRole) => {
-  try {
-    //(Update local state immediately)
-    setUser(prev =>({...prev,role:newRole}));
-
-    //use put for updation
-    const response =await api.put(
-      '/users/updateUserRole',
-      //the data i m sending
-      { role: newRole },
-      //This acts as your Digital ID Card. Your backend route is protected by verifyJWT. Without this header, the server would block the request saying "I don't know who you are."
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-      }
-    );
-
-      // Return success so the component knows to navigate
-      return { success: true };
-
-  } catch (error) {
-    return { success: false, message: error.response?.data?.message };
-  }
-}
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logOut, loading ,updateUserRole}}>
+    <AuthContext.Provider value={{ user, login, register, logOut, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );
