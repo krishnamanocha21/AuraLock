@@ -98,12 +98,42 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+
+  // 5. Update User Role Function
+  const updateUserRole = async (newRole) => {
+  try {
+    //(Update local state immediately)
+    setUser(prev =>({...prev,role:newRole}));
+
+    //use put for updation
+    const response =await api.put(
+      '/users/updateUserRole',
+      //the data i m sending
+      { role: newRole },
+      //This acts as your Digital ID Card. Your backend route is protected by verifyJWT. Without this header, the server would block the request saying "I don't know who you are."
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      }
+    );
+
+      // Return success so the component knows to navigate
+      return { success: true };
+
+  } catch (error) {
+    return { success: false, message: error.response?.data?.message };
+  }
+}
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logOut, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logOut, loading ,updateUserRole}}>
       {!loading && children}
     </AuthContext.Provider>
   );
 };
+
+
 
 export const useAuth = () => useContext(AuthContext);
 

@@ -73,10 +73,9 @@ const getUserUploadHistory = asyncHandler(async (req, res) => {
 });
 
 const getAllFiles =asyncHandler(async (req,res)={
-    
+
     /*ALGORITHM 
     1. 
-
      */
 });
 

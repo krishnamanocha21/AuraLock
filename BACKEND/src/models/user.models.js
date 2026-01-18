@@ -25,6 +25,11 @@ const userSchema = new Schema(
         },
         refreshToken: {
             type: String
+        },
+        role:{
+            type: String,
+            enum: ['Sender','Receiver'],
+            default:'Sender'
         }
     },
     {
