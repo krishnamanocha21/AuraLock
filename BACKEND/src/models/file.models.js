@@ -1,6 +1,7 @@
 import mongoose, {Schema} from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 import bcrypt from "bcrypt"; // Import bcrypt for file passwords
+import jwt from "jsonwebtoken"
 
 const fileSchema = new Schema(
     {
@@ -67,7 +68,18 @@ fileSchema.methods.isPasswordCorrect = async function(enteredPassword){
     return await bcrypt.compare(enteredPassword, this.password)
     ////this password is the hashed password stored in db
 }
+fileSchema.methods.generateAccessToken = function(){
+    return jwt.sign(
+        { 
+            _id: this._id,         // The FILE ID not user ID
+            email: this.owner.email 
+        },
+        process.env.FILE_ACCESS_TOKEN_SECRET, 
+        { expiresIn: process.env.FILE_ACCESS_TOKEN_EXPIRY || "15m" }
+    )
+}
 
 fileSchema.plugin(mongooseAggregatePaginate)
 
 export const File = mongoose.model("File", fileSchema)
+
